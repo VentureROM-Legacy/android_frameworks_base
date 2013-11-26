@@ -85,6 +85,9 @@
     <!-- WallpaperManager -->
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
 
+    <!--Halo-->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+
     <application
         android:persistent="true"
         android:allowClearUserData="false"
@@ -260,5 +263,6 @@
                 <category android:name="android.intent.category.DESK_DOCK" />
             </intent-filter>
         </activity>
+
     </application>
 </manifest>

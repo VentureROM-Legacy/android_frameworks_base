@@ -5271,7 +5271,7 @@ public class Activity extends ContextThemeWrapper
             params.alpha = 1f;
             params.dimAmount = 0.5f;
             mWindow.setAttributes((WindowManager.LayoutParams) params);
-
+            
             // Scale it
             scaleFloatingWindow(context);
 

@@ -3718,6 +3718,7 @@ public class Intent implements Parcelable, Cloneable {
      * in multi window scenarios.
      *
      * @hide
+     * in mutil window scenarios.
      */
     public static final int FLAG_FLOATING_WINDOW = 0x00002000;
     /**

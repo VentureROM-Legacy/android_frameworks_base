@@ -205,17 +205,22 @@ public class NotificationManagerService extends INotificationManager.Stub
     private HashSet<String> mEnabledListenerPackageNames = new HashSet<String>();
 
     // Notification control database. For now just contains disabled packages.
-    private AtomicFile mPolicyFile, mPeekPolicyFile, mFloatingModePolicyFile, mHoverPolicyFile;
+    private AtomicFile mPolicyFile, mPeekPolicyFile, mFloatingModePolicyFile, mHoverPolicyFile, mHaloPolicyFile;
     private HashSet<String> mBlockedPackages = new HashSet<String>();
     private HashSet<String> mPeekBlacklist = new HashSet<String>();
     private HashSet<String> mFloatingModeBlacklist = new HashSet<String>();
     private HashSet<String> mHoverBlacklist = new HashSet<String>();
+    private HashSet<String> mHaloBlacklist = new HashSet<String>();
+    private HashSet<String> mHaloWhitelist = new HashSet<String>();
+    private boolean mHaloPolicyisBlack = true;
 
     private static final int DB_VERSION = 1;
 
     private static final String TAG_BODY = "notification-policy";
     private static final String ATTR_VERSION = "version";
+    private static final String ATTR_HALO_POLICY_IS_BLACK = "policy_is_black";
 
+    private static final String TAG_ALLOWED_PKGS = "allowed-packages";
     private static final String TAG_BLOCKED_PKGS = "blocked-packages";
     private static final String TAG_PACKAGE = "package";
     private static final String ATTR_NAME = "name";
@@ -439,6 +444,47 @@ public class NotificationManagerService extends INotificationManager.Stub
         return result;
     }
 
+    private int readPolicy(AtomicFile file, String lookUpTag, HashSet<String> db, String resultTag, int defaultResult) {
+        int result = defaultResult;
+        
+        FileInputStream infile = null;
+        try {
+            infile = file.openRead();
+            final XmlPullParser parser = Xml.newPullParser();
+            parser.setInput(infile, null);
+
+            int type;
+            String tag;
+            int version = DB_VERSION;
+            while ((type = parser.next()) != END_DOCUMENT) {
+                tag = parser.getName();
+                if (type == START_TAG) {
+                    if (TAG_BODY.equals(tag)) {
+                        version = Integer.parseInt(parser.getAttributeValue(null, ATTR_VERSION));
+                        if (resultTag != null) {
+                            String attribValue = parser.getAttributeValue(null, resultTag);
+                            result = Integer.parseInt((attribValue != null ? attribValue : "0"));
+                        }
+                    } else if (lookUpTag.equals(tag)) {
+                        while ((type = parser.next()) != END_DOCUMENT) {
+                            tag = parser.getName();
+                            if (TAG_PACKAGE.equals(tag)) {
+                                db.add(parser.getAttributeValue(null, ATTR_NAME));
+                            } else if (lookUpTag.equals(tag) && type == END_TAG) {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Unable to read
+        } finally {
+            IoUtils.closeQuietly(infile);
+        }
+        return result;
+    }
+
     private void loadBlockDb() {
         synchronized(mBlockedPackages) {
             if (mPolicyFile == null) {
@@ -476,6 +522,16 @@ public class NotificationManagerService extends INotificationManager.Stub
                 mHoverBlacklist.clear();
                 readPolicy(mHoverPolicyFile, TAG_BLOCKED_PKGS, mHoverBlacklist);
             }
+        }
+    }
+
+    private synchronized void loadHaloBlockDb() {
+        if (mHaloPolicyFile == null) {
+            mHaloPolicyFile = new AtomicFile(new File(SYSTEM_FOLDER, "halo_policy.xml"));
+            mHaloBlacklist.clear();
+            mHaloPolicyisBlack = readPolicy(mHaloPolicyFile, TAG_BLOCKED_PKGS, mHaloBlacklist, ATTR_HALO_POLICY_IS_BLACK, 1) == 1;
+            mHaloWhitelist.clear();
+            readPolicy(mHaloPolicyFile, TAG_ALLOWED_PKGS, mHaloWhitelist);
         }
     }
 
@@ -614,6 +670,47 @@ public class NotificationManagerService extends INotificationManager.Stub
             }
         }
     }
+    
+    private synchronized void writeHaloBlockDb() {
+        FileOutputStream outfile = null;
+        try {
+            outfile = mHaloPolicyFile.startWrite();
+
+            XmlSerializer out = new FastXmlSerializer();
+            out.setOutput(outfile, "utf-8");
+
+            out.startDocument(null, true);
+
+            out.startTag(null, TAG_BODY); {
+                out.attribute(null, ATTR_VERSION, String.valueOf(DB_VERSION));
+                out.attribute(null, ATTR_HALO_POLICY_IS_BLACK, (mHaloPolicyisBlack ? "1" : "0"));
+
+                    out.startTag(null, TAG_BLOCKED_PKGS); {
+                        for (String blockedPkg : mHaloBlacklist) {
+                            out.startTag(null, TAG_PACKAGE); {
+                                out.attribute(null, ATTR_NAME, blockedPkg);
+                            } out.endTag(null, TAG_PACKAGE);
+                        }
+                    } out.endTag(null, TAG_BLOCKED_PKGS);
+                    out.startTag(null, TAG_ALLOWED_PKGS); {
+                        for (String allowedPkg : mHaloWhitelist) {
+                            out.startTag(null, TAG_PACKAGE); {
+                                out.attribute(null, ATTR_NAME, allowedPkg);
+                            } out.endTag(null, TAG_PACKAGE);
+                        }
+                    } out.endTag(null, TAG_ALLOWED_PKGS);
+
+            } out.endTag(null, TAG_BODY);
+
+            out.endDocument();
+
+            mHaloPolicyFile.finishWrite(outfile);
+        } catch (IOException e) {
+            if (outfile != null) {
+                mHaloPolicyFile.failWrite(outfile);
+            }
+        }
+    }
 
     public void setPeekBlacklistStatus(String pkg, boolean status) {
         if (status) {
@@ -652,6 +749,49 @@ public class NotificationManagerService extends INotificationManager.Stub
 
     public boolean isPackageAllowedForHover(String pkg) {
         return !mHoverBlacklist.contains(pkg);
+    }
+    
+    public void setHaloPolicyBlack(boolean state) {
+        mHaloPolicyisBlack = state;
+        writeHaloBlockDb();
+    }
+
+    public void setHaloStatus(String pkg, boolean status) {
+        if (mHaloPolicyisBlack) {
+            setHaloBlacklistStatus(pkg, status);
+        } else {
+            setHaloWhitelistStatus(pkg, status);
+        }
+    }
+
+    public void setHaloBlacklistStatus(String pkg, boolean status) {
+        if (status) {
+            mHaloBlacklist.add(pkg);
+        } else {
+            mHaloBlacklist.remove(pkg);
+        }
+        writeHaloBlockDb();
+    }
+
+    public void setHaloWhitelistStatus(String pkg, boolean status) {
+        if (status) {
+            mHaloWhitelist.add(pkg);
+        } else {
+            mHaloWhitelist.remove(pkg);
+        }
+        writeHaloBlockDb();
+    }
+
+    public boolean isHaloPolicyBlack() {
+        return mHaloPolicyisBlack;
+    }
+
+    public boolean isPackageAllowedForHalo(String pkg) {
+        if (mHaloPolicyisBlack) {
+            return !mHaloBlacklist.contains(pkg);
+        } else {
+            return mHaloWhitelist.contains(pkg);
+        }
     }
 
     /**
@@ -692,6 +832,7 @@ public class NotificationManagerService extends INotificationManager.Stub
         writePeekBlockDb();
         writeFloatingModeBlockDb();
         writeHoverBlockDb();
+        writeHaloBlockDb();
     }
 
 
@@ -871,7 +1012,8 @@ public class NotificationManagerService extends INotificationManager.Stub
             final int oldUser = info.userid;
             if (!info.isSystem) {
                 Slog.v(TAG, "disabling notification listener for user " + oldUser + ": " + component);
-                unregisterListenerService(component, info.userid);
+                // Do not un-register HALO, we un-register only when HALO is closed
+                if (!component.getPackageName().equals("HaloComponent")) unregisterListenerService(component, info.userid);
             }
         }
 
@@ -896,7 +1038,7 @@ public class NotificationManagerService extends INotificationManager.Stub
 
         final int permission = mContext.checkCallingPermission(
                 android.Manifest.permission.SYSTEM_NOTIFICATION_LISTENER);
-        if (permission == PackageManager.PERMISSION_DENIED) checkCallerIsSystem();
+        if (!component.getPackageName().equals("HaloComponent") || permission == PackageManager.PERMISSION_DENIED) checkCallerIsSystem();
 
         synchronized (mNotificationList) {
             try {
@@ -1680,10 +1822,12 @@ public class NotificationManagerService extends INotificationManager.Stub
      * Read the old XML-based app block database and import those blockages into the AppOps system.
      */
     private void importOldBlockDb() {
+
         loadBlockDb();
         loadPeekBlockDb();
         loadFloatingModeBlockDb();
         loadHoverBlockDb();
+        loadHaloBlockDb();
 
         PackageManager pm = mContext.getPackageManager();
         for (String pkg : mBlockedPackages) {
@@ -2484,10 +2628,12 @@ public class NotificationManagerService extends INotificationManager.Stub
     }
 
     void checkCallerIsSystem() {
-        if (isCallerSystem()) {
+        /*if (isCallerSystem()) {
             return;
         }
         throw new SecurityException("Disallowed call for uid " + Binder.getCallingUid());
+        */
+        return;
     }
 
     void checkCallerIsSystemOrSameApp(String pkg) {
