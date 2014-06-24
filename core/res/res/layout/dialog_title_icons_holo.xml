@@ -51,7 +51,11 @@ enabled.
     <View android:id="@+id/titleDivider"
             android:layout_width="match_parent"
             android:layout_height="1dip"
+<<<<<<< HEAD
             android:background="@color/dialog_title_divider" />
+=======
+            android:background="@android:color/white" />
+>>>>>>> 8c5b25a... Bye Bye Holo Blue Light
 
     <FrameLayout
         android:layout_width="match_parent" android:layout_height="wrap_content"
