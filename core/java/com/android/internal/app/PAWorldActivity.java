@@ -79,8 +79,13 @@ public class PAWorldActivity extends Activity {
 
         final TextView letter = new TextView(this);
 
+<<<<<<< HEAD
         letter.setTypeface(bold);
         letter.setTextSize(200);
+=======
+        letter.setTypeface(light);
+        letter.setTextSize(75);
+>>>>>>> 2745042... changed font of easter egg VENTURE
         letter.setTextColor(TEXT_COLOR);
         letter.setGravity(Gravity.CENTER);
         letter.setText("PA");
