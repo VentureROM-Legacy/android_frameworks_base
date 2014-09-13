@@ -42,7 +42,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class PAWorldActivity extends Activity {
+public class VentureEasterActivity extends Activity {
     FrameLayout mContent;
     int mCount;
     final Handler mHandler = new Handler();
@@ -69,7 +69,7 @@ public class PAWorldActivity extends Activity {
         lp.gravity = Gravity.CENTER;
 
         final ImageView logo = new ImageView(this);
-        logo.setImageResource(com.android.internal.R.drawable.pa_world_logo);
+        logo.setImageResource(com.android.internal.R.drawable.venture_easter);
         logo.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         logo.setVisibility(View.INVISIBLE);
 
@@ -79,7 +79,7 @@ public class PAWorldActivity extends Activity {
 
         final TextView letter = new TextView(this);
 
-        letter.setTypeface(light);
+        letter.setTypeface(bold);
         letter.setTextSize(75);
         letter.setTextColor(TEXT_COLOR);
         letter.setGravity(Gravity.CENTER);
@@ -165,7 +165,7 @@ public class PAWorldActivity extends Activity {
                     getBaseContext().startActivityAsUser(intent,
                             new UserHandle(UserHandle.USER_CURRENT));
                 } catch (ActivityNotFoundException ex) {
-                    android.util.Log.e("PAWorldActivity", "Couldn't catch a break.");
+                    android.util.Log.e("VentureEasterActivity", "Couldn't catch a break.");
                 }
                 finish();
                 return true;
