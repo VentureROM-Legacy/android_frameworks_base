@@ -80,7 +80,7 @@ public class PhoneStatusBarView extends PanelBar {
                     pm.goToSleep(e.getEventTime());
                 else
                     Log.d(TAG, "getSystemService returned null PowerManager");
-                return true;
+               return true;
             }
         });
     }
@@ -234,12 +234,17 @@ public class PhoneStatusBarView extends PanelBar {
             }
         }
         
+<<<<<<< HEAD
         if (Settings.System.getInt(mContext.getContentResolver(), Settings.System.DOUBLE_TAP_STATUS_BAR_TO_SLEEP, 0) == 1)
         	mDoubleTapGesture.onTouchEvent(event);
 
         if (Settings.System.getInt(mContext.getContentResolver(),
                        Settings.System.DOUBLE_TAP_SLEEP_GESTURE, 0) == 1)
             mDoubleTapGesture.onTouchEvent(event);
+=======
+        if (Settings.System.getInt(mContext.getContentResolver(), Settings.System.DOUBLE_TAP_TO_SLEEP, 0) == 1)
+        	mDoubleTapGesture.onTouchEvent(event);
+>>>>>>> f1bb05f... Add Double Tap Statusbar to Sleep
 
         return barConsumedEvent || super.onTouchEvent(event);
     }
