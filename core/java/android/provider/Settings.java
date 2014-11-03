@@ -3130,6 +3130,12 @@ public final class Settings {
          * @hide
          */
         public static final String STATUS_BAR_RECENTS_CARD_STACK = "status_bar_recents_card_stack";
+        
+        /**
+         * Double Tap Statusbar to Sleep
+         * @hide
+         */
+        public static final String DOUBLE_TAP_TO_SLEEP = "double_tap_to_sleep";
 
         /**
          * Pie control panel. Meet him on the spot.
