@@ -417,7 +417,7 @@ public class NetworkController extends BroadcastReceiver implements DemoMode {
                     // Delay wifi connection notifications by at least 30 seconds immediately after boot
                     mConnectionAtBoot = false;
             }}, 30000);
-        }else if (action.equals(Intent.ACTION_CONFIGURATION_CHANGED)) {
+        } else if (action.equals(Intent.ACTION_CONFIGURATION_CHANGED)) {
             refreshLocale();
             refreshViews();
         } else if (action.equals(Intent.ACTION_AIRPLANE_MODE_CHANGED)) {
