@@ -927,7 +927,7 @@ public class NetworkController extends BroadcastReceiver implements DemoMode {
                 }
                 if (info != null) {
                     mWifiSsid = huntForSsid(mWifiManager, info);
-                    	mWifiNotifications = Settings.System.getInt(mContext.getContentResolver(),Settings.System.WIFI_NETWORK_NOTIFICATIONS, 0);
+             	    mWifiNotifications = Settings.System.getInt(mContext.getContentResolver(),Settings.System.WIFI_NETWORK_NOTIFICATIONS, 0);
 			 if (mWifiNotifications > 0) {
                         boolean restoredConnection = mConnectionsList.contains(mWifiSsid);
                         if (!mConnectionAtBoot && (mWifiSsid != oldWifiSsid)) {
@@ -958,8 +958,8 @@ public class NetworkController extends BroadcastReceiver implements DemoMode {
                                             .setContentIntent(contentIntent)
                                             .setAutoCancel(true);
                                     if (mWifiNotifications == 3) {
-                                        Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                                        network.setSound(soundUri);
+                                    	Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                                    	network.setSound(soundUri);
                                     }
                                     nm.cancel(R.string.wifi_address_changed);
                                     nm.notify(R.string.wifi_address_changed, network.build());
