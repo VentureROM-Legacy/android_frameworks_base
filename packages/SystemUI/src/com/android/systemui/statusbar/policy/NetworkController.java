@@ -234,7 +234,6 @@ public class NetworkController extends BroadcastReceiver implements DemoMode {
 
         // broadcasts
         IntentFilter filter = new IntentFilter();
-	filter.addAction("cm.UPDATE_WIFI_NOTIFICATION_PREFERENCE");
         filter.addAction(Intent.ACTION_BOOT_COMPLETED);
         filter.addAction(WifiManager.RSSI_CHANGED_ACTION);
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
@@ -418,10 +417,7 @@ public class NetworkController extends BroadcastReceiver implements DemoMode {
                     // Delay wifi connection notifications by at least 30 seconds immediately after boot
                     mConnectionAtBoot = false;
             }}, 30000);
-        } else if (action.equals("cm.UPDATE_WIFI_NOTIFICATION_PREFERENCE")) {
-            mWifiNotifications = Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.WIFI_NETWORK_NOTIFICATIONS, 0);
-        } else if (action.equals(Intent.ACTION_CONFIGURATION_CHANGED)) {
+        }else if (action.equals(Intent.ACTION_CONFIGURATION_CHANGED)) {
             refreshLocale();
             refreshViews();
         } else if (action.equals(Intent.ACTION_AIRPLANE_MODE_CHANGED)) {
@@ -434,9 +430,6 @@ public class NetworkController extends BroadcastReceiver implements DemoMode {
                 action.equals(WimaxManagerConstants.WIMAX_NETWORK_STATE_CHANGED_ACTION)) {
             updateWimaxState(intent);
             refreshViews();
-        } else if (action.equals("cm.UPDATE_WIFI_NOTIFICATION_PREFERENCE")) {
-            mWifiNotifications = Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.WIFI_NETWORK_NOTIFICATIONS, 0);
         }
     }
 
@@ -934,6 +927,7 @@ public class NetworkController extends BroadcastReceiver implements DemoMode {
                 }
                 if (info != null) {
                     mWifiSsid = huntForSsid(mWifiManager, info);
+                    	mWifiNotifications = Settings.System.getInt(mContext.getContentResolver(),Settings.System.WIFI_NETWORK_NOTIFICATIONS, 0);
 			 if (mWifiNotifications > 0) {
                         boolean restoredConnection = mConnectionsList.contains(mWifiSsid);
                         if (!mConnectionAtBoot && (mWifiSsid != oldWifiSsid)) {
