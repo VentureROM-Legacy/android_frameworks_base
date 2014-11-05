@@ -3135,7 +3135,13 @@ public final class Settings {
          * Double Tap Statusbar to Sleep
          * @hide
          */
-        public static final String DOUBLE_TAP_TO_SLEEP = "double_tap_to_sleep";
+        public static final String DOUBLE_TAP_STATUS_BAR_TO_SLEEP = "double_tap_status_bar_to_sleep";
+        
+        /**
+         * Double Tap Navbar to Sleep
+         * @hide
+         */
+        public static final String DOUBLE_TAP_NAV_BAR_TO_SLEEP = "double_tap_nav_bar_to_sleep";
 
         /**
          * Pie control panel. Meet him on the spot.

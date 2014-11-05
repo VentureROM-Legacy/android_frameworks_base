@@ -46,12 +46,14 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Display;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
@@ -118,6 +120,8 @@ public class NavigationBarView extends LinearLayout implements NavigationCallbac
     private Resources mThemedResources;
 
     private final int mDSBDuration;
+    
+    private GestureDetector mDoubleTapGesture;
 
     private class NavTransitionListener implements TransitionListener {
         private boolean mBackTransitioning;
@@ -252,6 +256,18 @@ public class NavigationBarView extends LinearLayout implements NavigationCallbac
             }
 
         });
+        
+        mDoubleTapGesture = new GestureDetector(mContext, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+					PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
+					if(pm != null) 
+						pm.goToSleep(e.getEventTime());
+					else 
+						Log.d(TAG, "getSystemService returned null PowerManager");
+                return true;
+            }
+        });
     }
 
     private AnimatorSet generateButtonColorsAnimatorSet() {
@@ -330,6 +346,8 @@ public class NavigationBarView extends LinearLayout implements NavigationCallbac
             boolean ret = mDelegateHelper.onInterceptTouchEvent(event);
             if (ret) return true;
         }
+        if (Settings.System.getInt(mContext.getContentResolver(), Settings.System.DOUBLE_TAP_NAV_BAR_TO_SLEEP, 0) == 1)
+        	mDoubleTapGesture.onTouchEvent(event);
         return super.onTouchEvent(event);
     }
 
