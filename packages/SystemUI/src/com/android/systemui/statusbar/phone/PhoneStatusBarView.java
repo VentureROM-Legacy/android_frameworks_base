@@ -234,7 +234,7 @@ public class PhoneStatusBarView extends PanelBar {
             }
         }
         
-        if (Settings.System.getInt(mContext.getContentResolver(), Settings.System.DOUBLE_TAP_TO_SLEEP, 0) == 1)
+        if (Settings.System.getInt(mContext.getContentResolver(), Settings.System.DOUBLE_TAP_STATUS_BAR_TO_SLEEP, 0) == 1)
         	mDoubleTapGesture.onTouchEvent(event);
 
         if (Settings.System.getInt(mContext.getContentResolver(),
